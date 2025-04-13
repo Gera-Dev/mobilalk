@@ -1,4 +1,4 @@
-# Áramlejelentő Alkalmazás
+# Kilowatt Kapitány
 
 Ez az Android alkalmazás lehetővé teszi a felhasználók számára az áramóra állásának leolvasását és lejelentését online módon.
 

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Áramlejelentő</string>
+    <string name="app_name">Kilowatt Kapitány</string>
     <string name="action_settings">Beállítások</string>
     
     <!-- Navigáció -->
@@ -7,7 +7,7 @@
     <string name="second_fragment_label">Második Képernyő</string>
     
     <!-- Bejelentkezés és regisztráció -->
-    <string name="auth_title">Áramlejelentő</string>
+    <string name="auth_title">Kilowatt Kapitány</string>
     <string name="auth_subtitle">Online áramóra leolvasás és lejelentés</string>
     <string name="login">Bejelentkezés</string>
     <string name="register">Regisztráció</string>
