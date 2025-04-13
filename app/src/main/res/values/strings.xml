@@ -2,6 +2,10 @@
     <string name="app_name">Áramlejelentő</string>
     <string name="action_settings">Beállítások</string>
     
+    <!-- Navigáció -->
+    <string name="first_fragment_label">Első Képernyő</string>
+    <string name="second_fragment_label">Második Képernyő</string>
+    
     <!-- Bejelentkezés és regisztráció -->
     <string name="auth_title">Áramlejelentő</string>
     <string name="auth_subtitle">Online áramóra leolvasás és lejelentés</string>

@@ -1,11 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
-    // Firebase plugin hozzáadása
-    id 'com.google.gms.google-services'
+    // Firebase plugin hozzáadása modern szintaxissal
+    alias(libs.plugins.google.services)
 }
 
 android {
-    namespace 'com.geradev.mobilalk'
+    namespace "com.geradev.mobilalk"
     compileSdk 35
 
     defaultConfig {
@@ -21,12 +21,12 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_19
+        targetCompatibility JavaVersion.VERSION_19
     }
     buildFeatures {
         viewBinding true
@@ -40,14 +40,14 @@ dependencies {
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
     
-    // Firebase függőségek
-    implementation platform('com.google.firebase:firebase-bom:32.9.0')
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore'
+    // Firebase függőségek - frissített stabil verzióval
+    implementation platform("com.google.firebase:firebase-bom:32.7.2")
+    implementation "com.google.firebase:firebase-auth"
+    implementation "com.google.firebase:firebase-firestore"
     
     // Animáció támogatáshoz
-    implementation 'androidx.cardview:cardview:1.0.0'
-    
+    implementation "androidx.cardview:cardview:1.0.0"
+
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

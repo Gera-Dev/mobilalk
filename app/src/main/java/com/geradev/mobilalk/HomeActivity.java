@@ -24,7 +24,10 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -32,6 +35,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -46,6 +51,7 @@ public class HomeActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private ReadingsAdapter adapter;
     private String currentUserId;
+    private ListenerRegistration readingsListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,11 +91,58 @@ public class HomeActivity extends AppCompatActivity {
         profileFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(HomeActivity.this, "Profil funkció még nincs implementálva", Toast.LENGTH_SHORT).show();
+                Toast.makeText(HomeActivity.this, "Kijelentkezés...", Toast.LENGTH_SHORT).show();
+                logoutUser();
             }
         });
 
-        loadReadings();
+        setupRealtimeReadingsListener();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (readingsListener != null) {
+            readingsListener.remove();
+        }
+    }
+
+    private void setupRealtimeReadingsListener() {
+        if (readingsListener != null) {
+            readingsListener.remove();
+        }
+
+        readingsListener = db.collection("readings")
+                .whereEqualTo("userId", currentUserId)
+                .orderBy("date", Query.Direction.DESCENDING)
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, 
+                                        @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Toast.makeText(HomeActivity.this, "Hiba történt az adatok betöltése közben: " + e.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        List<MeterReading> readings = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                            MeterReading reading = document.toObject(MeterReading.class);
+                            reading.setId(document.getId());
+                            readings.add(reading);
+                        }
+
+                        adapter.setReadings(readings);
+
+                        if (readings.isEmpty()) {
+                            readingsRecyclerView.setVisibility(View.GONE);
+                            noReadingsTextView.setVisibility(View.VISIBLE);
+                        } else {
+                            readingsRecyclerView.setVisibility(View.VISIBLE);
+                            noReadingsTextView.setVisibility(View.GONE);
+                        }
+                    }
+                });
     }
 
     @Override
@@ -136,7 +189,6 @@ public class HomeActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Toast.makeText(HomeActivity.this, "Óraállás sikeresen rögzítve", Toast.LENGTH_SHORT).show();
                             meterReadingEditText.setText("");
-                            loadReadings();
                         } else {
                             Toast.makeText(HomeActivity.this, "Hiba történt: " + task.getException().getMessage(),
                                     Toast.LENGTH_SHORT).show();
