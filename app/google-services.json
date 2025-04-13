@@ -1,0 +1,30 @@
+{
+    "project_info": {
+      "project_number": "917179796077",
+      "project_id": "mobillak",
+      "storage_bucket": "mobillak.firebasestorage.app"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:917179796077:android:5a685d0e2b81b4155c8d64",
+          "android_client_info": {
+            "package_name": "com.geradev.mobilalk"
+          }
+        },
+        "oauth_client": [],
+        "api_key": [
+          {
+            "current_key": "AIzaSyA3jQjzYtA3eU2kldQ9YTQomt9Ys4g5WmU"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": []
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }
+  

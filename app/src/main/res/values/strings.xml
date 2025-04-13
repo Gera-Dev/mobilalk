@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">Áramlejelentő</string>
+    <string name="action_settings">Beállítások</string>
+    
+    <!-- Bejelentkezés és regisztráció -->
+    <string name="auth_title">Áramlejelentő</string>
+    <string name="auth_subtitle">Online áramóra leolvasás és lejelentés</string>
+    <string name="login">Bejelentkezés</string>
+    <string name="register">Regisztráció</string>
+    <string name="email">Email cím</string>
+    <string name="password">Jelszó</string>
+    <string name="password_confirm">Jelszó megerősítése</string>
+    <string name="forgot_password">Elfelejtett jelszó?</string>
+    <string name="name">Teljes név</string>
+    <string name="back_to_login">Vissza a bejelentkezéshez</string>
+    
+    <!-- Főoldal és leolvasás -->
+    <string name="home_title">Áramóra leolvasás</string>
+    <string name="meter_reading">Óraállás (kWh)</string>
+    <string name="submit_reading">Leolvasás rögzítése</string>
+    <string name="reading_history">Korábbi leolvasások</string>
+    <string name="profile">Profil</string>
+    <string name="logout">Kijelentkezés</string>
+    
+    <!-- Profil képernyő -->
+    <string name="profile_title">Profil adatok</string>
+    <string name="meter_id">Mérőóra azonosító</string>
+    <string name="address">Lakcím</string>
+    <string name="save">Mentés</string>
+    
+    <!-- Leolvasástörténet -->
+    <string name="history_title">Korábbi leolvasások</string>
+    <string name="no_readings">Még nincs rögzített óraállás</string>
+    <string name="date">Dátum</string>
+    <string name="reading_value">Óraállás</string>
+</resources>
