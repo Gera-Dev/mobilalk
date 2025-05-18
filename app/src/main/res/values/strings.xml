@@ -37,4 +37,17 @@
     <string name="no_readings">Még nincs rögzített óraállás</string>
     <string name="date">Dátum</string>
     <string name="reading_value">Óraállás</string>
+    
+    <!-- Statisztikák -->
+    <string name="statistics_title">Statisztikák</string>
+    <string name="calculate_consumption">Fogyasztás kiszámítása</string>
+    <string name="avg_consumption">Átlagos fogyasztás: %.2f kWh/nap</string>
+    <string name="avg_consumption_hint">Átlagos fogyasztás megjelenítéséhez kattints a gombra</string>
+    <string name="min_two_readings_needed">Legalább két mérőállás szükséges a fogyasztás számításához</string>
+    
+    <!-- Beállítások -->
+    <string name="settings">Beállítások</string>
+    <string name="notification_settings">Értesítési beállítások</string>
+    <string name="enable_notifications">Értesítések engedélyezése</string>
+    <string name="notification_frequency">Értesítési gyakoriság: %d nap</string>
 </resources>

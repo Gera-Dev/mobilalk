@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -40,20 +41,21 @@ import javax.annotation.Nullable;
 
 public class HomeActivity extends AppCompatActivity {
 
+    private static final String TAG = "HomeActivity";
+    
     private TextInputEditText meterReadingEditText;
     private Button submitReadingButton;
     private FloatingActionButton profileFab;
     private RecyclerView readingsRecyclerView;
     private TextView noReadingsTextView;
     private View meterReadingCard;
+    private TextView avgConsumptionTextView;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private ReadingsAdapter adapter;
     private String currentUserId;
-    private ListenerRegistration readingsListener;
-
-    @Override
+    private ListenerRegistration readingsListener;    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
@@ -73,6 +75,7 @@ public class HomeActivity extends AppCompatActivity {
         readingsRecyclerView = findViewById(R.id.readingsRecyclerView);
         noReadingsTextView = findViewById(R.id.noReadingsTextView);
         meterReadingCard = findViewById(R.id.meterReadingCard);
+        avgConsumptionTextView = findViewById(R.id.avgConsumptionTextView);
 
         adapter = new ReadingsAdapter();
         readingsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -86,42 +89,50 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 submitReading();
             }
-        });
-
-        profileFab.setOnClickListener(new View.OnClickListener() {
+        });        profileFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(HomeActivity.this, "Kijelentkezés...", Toast.LENGTH_SHORT).show();
-                logoutUser();
+                startActivity(new Intent(HomeActivity.this, ProfileActivity.class));
             }
+        });
+        
+        // Menü beállítása
+        findViewById(R.id.settingsButton).setOnClickListener(v -> {
+            startActivity(new Intent(HomeActivity.this, SettingsActivity.class));
+        });
+
+        findViewById(R.id.calculateStatsButton).setOnClickListener(v -> {
+            Log.d(TAG, "onClick: Statisztikai gomb megnyomva");
+            calculateAverageConsumption();
         });
 
         setupRealtimeReadingsListener();
     }
-
-    @Override
+      @Override
+    protected void onResume() {
+        super.onResume();
+        setupRealtimeReadingsListener();
+    }    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (readingsListener != null) {
             readingsListener.remove();
         }
-    }
-
-    private void setupRealtimeReadingsListener() {
+    }    private void setupRealtimeReadingsListener() {
         if (readingsListener != null) {
             readingsListener.remove();
         }
-
         readingsListener = db.collection("readings")
                 .whereEqualTo("userId", currentUserId)
                 .orderBy("date", Query.Direction.DESCENDING)
+                .limit(20) // Max. 20 bejegyzés lekérdezése
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, 
-                                        @Nullable FirebaseFirestoreException e) {
-                        if (e != null) {
-                            Toast.makeText(HomeActivity.this, "Hiba történt az adatok betöltése közben: " + e.getMessage(),
-                                    Toast.LENGTH_SHORT).show();
+                                        @Nullable FirebaseFirestoreException e) {                        if (e != null) {
+                            String errorMsg = "Hiba történt az adatok betöltése közben: " + e.getMessage();
+                            Log.e(TAG, errorMsg, e);
+                            Toast.makeText(HomeActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                             return;
                         }
 
@@ -143,6 +154,27 @@ public class HomeActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }    
+    private void queryHighConsumptionReadings() {
+        db.collection("readings")
+            .whereEqualTo("userId", currentUserId)
+            .whereGreaterThan("reading", 10000) // Magas fogyasztás (pl. 10000 kWh fölött)
+            .orderBy("reading", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                // Feldolgozás szükség szerint
+            });
+    }
+      private void queryReadingsByDateRange(Date startDate, Date endDate) {
+        db.collection("readings")
+            .whereEqualTo("userId", currentUserId)
+            .whereGreaterThanOrEqualTo("date", startDate)
+            .whereLessThanOrEqualTo("date", endDate)
+            .orderBy("date", Query.Direction.ASCENDING)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                // Feldolgozás szükség szerint
+            });
     }
 
     @Override
@@ -185,11 +217,14 @@ public class HomeActivity extends AppCompatActivity {
                 .add(meterReading)
                 .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                     @Override
-                    public void onComplete(@NonNull Task<DocumentReference> task) {
-                        if (task.isSuccessful()) {
+                    public void onComplete(@NonNull Task<DocumentReference> task) {                        if (task.isSuccessful()) {
+                            String successMsg = "Óraállás sikeresen rögzítve: " + task.getResult().getId();
+                            Log.d(TAG, successMsg);
                             Toast.makeText(HomeActivity.this, "Óraállás sikeresen rögzítve", Toast.LENGTH_SHORT).show();
                             meterReadingEditText.setText("");
                         } else {
+                            String errorMsg = "Hiba történt a mérőállás rögzítésekor: " + task.getException().getMessage();
+                            Log.e(TAG, errorMsg, task.getException());
                             Toast.makeText(HomeActivity.this, "Hiba történt: " + task.getException().getMessage(),
                                     Toast.LENGTH_SHORT).show();
                         }
@@ -240,5 +275,55 @@ public class HomeActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }    private void calculateAverageConsumption() {
+        Log.d(TAG, "calculateAverageConsumption: Átlagos fogyasztás számítása");
+        db.collection("readings")
+            .whereEqualTo("userId", currentUserId)
+            .orderBy("date", Query.Direction.ASCENDING)
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                if (queryDocumentSnapshots.isEmpty() || queryDocumentSnapshots.size() < 2) {
+                    String message = "Legalább két mérőállás szükséges a fogyasztás számításához";
+                    Log.w(TAG, "calculateAverageConsumption: " + message);
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                List<MeterReading> readings = new ArrayList<>();
+                for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                    MeterReading reading = document.toObject(MeterReading.class);
+                    reading.setId(document.getId());
+                    readings.add(reading);
+                }
+                
+                // Kiszámoljuk az első és utolsó leolvasás közötti különbséget
+                MeterReading firstReading = readings.get(0);
+                MeterReading lastReading = readings.get(readings.size() - 1);
+                
+                double consumptionDiff = lastReading.getReading() - firstReading.getReading();
+                
+                // Kiszámoljuk a napok számát
+                long timeDiffMillis = lastReading.getDate().getTime() - firstReading.getDate().getTime();
+                int daysDiff = Math.max(1, (int) (timeDiffMillis / (1000 * 60 * 60 * 24)));
+                
+                // Átlagos napi fogyasztás
+                double avgDailyConsumption = consumptionDiff / daysDiff;
+                
+                String resultMsg = String.format("Átlagos napi fogyasztás: %.2f kWh/nap", avgDailyConsumption);
+                Log.d(TAG, "calculateAverageConsumption: " + resultMsg);
+                
+                // Megjelenítjük az eredményt
+                avgConsumptionTextView.setText(resultMsg);
+                avgConsumptionTextView.setVisibility(View.VISIBLE);
+                
+                // Animáljuk az eredményt
+                Animation fadeIn = AnimationUtils.loadAnimation(this, android.R.anim.fade_in);
+                avgConsumptionTextView.startAnimation(fadeIn);
+            })
+            .addOnFailureListener(e -> {
+                String errorMsg = "Hiba a fogyasztás számításakor: " + e.getMessage();
+                Log.e(TAG, errorMsg, e);
+                Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show();
+            });
     }
 }
